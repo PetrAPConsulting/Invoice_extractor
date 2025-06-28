@@ -1,5 +1,5 @@
 # Invoice extractor
-Script extracting data from the Czech invoices in JSON and checking validity of VAT tax payer.
+Script extracting data from the Czech invoices in JSON and checking validity of VAT tax payer. Script uses Anthropic Claude 3.5 Haiku and you need **API key** for its running.
 
 ## Installation Instructions
 
