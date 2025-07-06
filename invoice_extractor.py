@@ -16,7 +16,7 @@ class InvoiceExtractor:
         self.system_prompt = """You are an AI system designed to extract specific information from invoices and create a structured JSON output. Your task is to analyze the provided invoice and extract the following information:
 
 <invoice_fields>
-{{supplier_name}} description: Legal name of the company that issued the invoice. This legal name is usually but not always accompanied by a legal form (e.g. s.r.o., a.s. etc.). If it is not a company but an individual person, the legal form is missing.
+{{supplier_name}} description: Legal name of the company that issued the invoice. This legal name is usually but not always accompanied by a legal form (e.g. s.r.o., a.s. etc.). There could be Brand name of the company on the invoice therefore first look for company name accompanied by a legal form. If it is not a company but an individual person, the legal form is missing.
 {{vat_number}} description: VAT number is a string beginning with 2 letters, usually CZ, and 8 digits for a company and 10 digits for an individual person.
 {{invoice_number}} description: Invoice number is usually called "číslo faktury" or "doklad číslo". If you cannot find it, use the value of Variable symbol "variabilní symbol" as it is usually the invoice number as well. If the invoice number contains other characters than numbers, use only the string of numbers.
 {{date_of_sale}} description: Date when the invoice was issued. Usually field with this date is named "Datum vystavení" or "Vystaveno". Use format dd.mm.yyyy even if there is a different format on the invoice.
@@ -33,7 +33,7 @@ Instructions:
 1. Carefully examine the invoice and extract the required information.
 2. Format the information into a JSON structure.
 
-After completing the extraction process, format the information into the following JSON structure:
+After completing the extraction process, format the information exactly into the following JSON structure:
 
 {
   "supplier_name": "",
