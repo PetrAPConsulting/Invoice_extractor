@@ -68,19 +68,24 @@ Provide only the JSON output without any additional description or explanation."
             return base64.b64encode(image_file.read()).decode('utf-8')
 
     def pdf_to_image(self, pdf_path):
-        """Convert first page of PDF to image and return base64 encoded string."""
+        """Convert first page of PDF to image and return base64 encoded string with enhanced quality."""
         doc = fitz.open(pdf_path)
         page = doc[0]  # Get first page
         
-        # Convert page to image
-        mat = fitz.Matrix(2, 2)  # Scale factor for better quality
+        mat = fitz.Matrix(3, 3)  # Scale factor for better OCR quality
         pix = page.get_pixmap(matrix=mat)
-        img_data = pix.tobytes("png")
         
-        # Save temporary image
-        temp_image_path = "temp_invoice.png"
-        with open(temp_image_path, "wb") as f:
-            f.write(img_data)
+        # Convert to PIL Image for processing
+        img_data = pix.tobytes("png")
+        from io import BytesIO
+        img = Image.open(BytesIO(img_data))
+        
+        # Enhance image for better OCR
+        img = self.enhance_image_for_ocr(img)
+        
+        # Save processed image
+        temp_image_path = "temp_invoice_enhanced.png"
+        img.save(temp_image_path, "PNG", quality=100, optimize=False)
         
         # Encode to base64
         encoded_image = self.encode_image(temp_image_path)
@@ -90,6 +95,46 @@ Provide only the JSON output without any additional description or explanation."
         doc.close()
         
         return encoded_image
+
+    def enhance_image_for_ocr(self, img):
+        """Enhance image quality for better OCR recognition."""
+        from PIL import ImageEnhance, ImageFilter
+        
+        # Convert to RGB if not already
+        if img.mode != 'RGB':
+            img = img.convert('RGB')
+        
+        # 1. Increase contrast
+        contrast_enhancer = ImageEnhance.Contrast(img)
+        img = contrast_enhancer.enhance(1.5)  # Increase contrast by 50%
+        
+        # 2. Increase sharpness
+        sharpness_enhancer = ImageEnhance.Sharpness(img)
+        img = sharpness_enhancer.enhance(1.3)  # Increase sharpness by 30%
+        
+        # 3. Slight brightness adjustment (optional)
+        brightness_enhancer = ImageEnhance.Brightness(img)
+        img = brightness_enhancer.enhance(1.1)  # Slightly brighter
+        
+        # 4. Apply unsharp mask filter for better edge definition
+        img = img.filter(ImageFilter.UnsharpMask(radius=1, percent=150, threshold=3))
+        
+        return img
+
+    def enhance_existing_image(self, image_path):
+        """Enhance existing image files for better OCR."""
+        try:
+            img = Image.open(image_path)
+            enhanced_img = self.enhance_image_for_ocr(img)
+            
+            # Save enhanced version temporarily
+            temp_path = f"temp_enhanced_{Path(image_path).name}"
+            enhanced_img.save(temp_path, quality=100, optimize=False)
+            
+            return temp_path
+        except Exception as e:
+            print(f"Error enhancing image {image_path}: {e}")
+            return image_path  # Return original if enhancement fails
 
     def check_vat_reliability(self, vat_number):
         """Check VAT payer reliability using Czech Ministry of Finance web service."""
@@ -212,7 +257,14 @@ Provide only the JSON output without any additional description or explanation."
             media_type = "image/png"
         # Handle image files
         else:
-            encoded_image = self.encode_image(file_path)
+            # Enhance existing image
+            enhanced_image_path = self.enhance_existing_image(file_path)
+            encoded_image = self.encode_image(enhanced_image_path)
+            
+            # Clean up enhanced image if it was created
+            if enhanced_image_path != file_path:
+                os.remove(enhanced_image_path)
+            
             if file_extension in ['.jpg', '.jpeg']:
                 media_type = "image/jpeg"
             elif file_extension == '.png':
@@ -228,7 +280,7 @@ Provide only the JSON output without any additional description or explanation."
             # Call Anthropic API
             message = self.client.messages.create(
                 model="claude-3-5-haiku-20241022", # claude-sonnet-4-20250514
-                max_tokens=500,
+                max_tokens=300,
                 temperature=0.2,
                 system=self.system_prompt,
                 messages=[
@@ -327,7 +379,7 @@ Provide only the JSON output without any additional description or explanation."
 
 def main():
     # Replace with your actual Anthropic API key
-    API_KEY = "YOUR_API_KEY_HERE"
+    API_KEY = "your_api_key_here" # API KEY
     
     # Initialize extractor
     extractor = InvoiceExtractor(API_KEY)
@@ -340,7 +392,7 @@ if __name__ == "__main__":
     try:
         import anthropic
         import fitz
-        from PIL import Image
+        from PIL import Image, ImageEnhance, ImageFilter
         import requests
         import xml.etree.ElementTree as ET
     except ImportError as e:
