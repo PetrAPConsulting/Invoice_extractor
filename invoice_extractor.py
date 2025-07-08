@@ -16,16 +16,26 @@ class InvoiceExtractor:
         self.system_prompt = """You are an AI system designed to extract specific information from invoices and create a structured JSON output. Your task is to analyze the provided invoice and extract the following information:
 
 <invoice_fields>
-{{supplier_name}} description: Legal name of the company that issued the invoice. This legal name is usually but not always accompanied by a legal form (e.g. s.r.o., a.s. etc.). There could be Brand name of the company on the invoice therefore first look for company name accompanied by a legal form. If it is not a company but an individual person, the legal form is missing.
-{{vat_number}} description: VAT number is a string beginning with 2 letters, usually CZ, and 8 digits for a company and 10 digits for an individual person.
-{{invoice_number}} description: Invoice number is usually called "číslo faktury" or "doklad číslo". If you cannot find it, use the value of Variable symbol "variabilní symbol" as it is usually the invoice number as well. If the invoice number contains other characters than numbers, use only the string of numbers.
+{{supplier_name}} description: Extract the legal name of the entity that issued the invoice. Follow this priority order: 1) Primary: Look for the company name that includes a legal entity designation (e.g., s.r.o., a.s., spol. s r.o., LLC, Inc., Corp., Ltd., GmbH, SA, etc.). This is typically the official legal name and should always be prioritized over brand names or trade names. 2) Secondary: If no legal entity designation is present, look for the name that appears in the official invoice header, sender address, or tax/registration number section. 3) Individual persons: If the invoice is issued by an individual (no legal entity designation present), extract the full personal name. Prioritize legal names over brand names, even if the brand name is more prominently displayed.
+
+{{vat_number}} description: VAT number is a string beginning with 2 letters, usually CZ, and 8 digits for a company and 10 digits for an individual person. This field is mandatory - every invoice must have a VAT number. Look carefully in the header, footer, or company details section if not immediately visible.
+
+{{invoice_number}} description: Invoice number is the unique identifier of this specific invoice document. Look for fields labeled "číslo faktury", "daňový doklad číslo", or "doklad číslo". AVOID extracting "číslo plátce" (payers number), "klientské číslo" (client number), "zákaznické číslo" (customer number), or "číslo objednávky" (order numbers). This field is mandatory - every invoice must have an invoice number. The invoice number is typically displayed prominently near the top of the invoice and is the number that identifies this particular billing document. If you cannot find a clearly labeled invoice number, use the "variabilní symbol" (variable symbol) value as it often serves as the invoice number. Extract only numeric characters from this field, removing any letters or special characters.
+
 {{date_of_sale}} description: Date when the invoice was issued. Usually field with this date is named "Datum vystavení" or "Vystaveno". Use format dd.mm.yyyy even if there is a different format on the invoice.
+
 {{due_date}} description: Date when the invoice is due for payment. Usually field with this date is named "Datum splatnosti". Use format dd.mm.yyyy even if there is a different format on the invoice.
+
 {{duzp}} description: Date when is recognized VAT tax. Usually field with this date is named "Datum uskutečnění zdanitelného plnění" or some form abbreviated from this text or "DUZP" only. This field must be always filled. If you can not find this date, use same date as date of sale. Use format dd.mm.yyyy even if there is a different format on the invoice.
+
 {{amount_without_VAT_21}} description: Total amount where VAT rate 21% is applied. Use the value before VAT is applied. If on the invoice there is no amount related to VAT rate 21%, use value 0 for this field.
+
 {{VAT_21}} description: Total amount of 21% VAT. Usually listed in the same line as total amount without 21% VAT in the table where the summary of VAT is shown. If there is no value, use 0 in this field. This field cannot be 0 if amount_without_VAT_21 is a number.
+
 {{amount_without_VAT_12}} description: Total amount where VAT rate 12% is applied. Use the value before VAT is applied. If on the invoice there is no amount related to VAT rate 12%, use value 0 for this field.
+
 {{VAT_12}} description: Total amount of 12% VAT. Usually listed in the same line as total amount without 12% VAT in the table where the summary of VAT is shown. If there is no value, use 0 in this field. This field cannot be 0 if amount_without_VAT_12 is a number.
+
 {{total_amount_with_VAT}} description: Total amount on the issued invoice with VAT. Amount that the client paid or is going to pay.
 </invoice_fields>
 
