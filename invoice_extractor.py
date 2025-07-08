@@ -227,7 +227,7 @@ Provide only the JSON output without any additional description or explanation."
         try:
             # Call Anthropic API
             message = self.client.messages.create(
-                model="claude-3-5-haiku-20241022",
+                model="claude-3-5-haiku-20241022", # claude-sonnet-4-20250514
                 max_tokens=500,
                 temperature=0.2,
                 system=self.system_prompt,
