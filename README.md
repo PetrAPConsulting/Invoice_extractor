@@ -1,5 +1,5 @@
 # Invoice extractor
-Script extracting data from the Czech invoices in JSON and checking validity of VAT tax payer. Script uses Anthropic Claude 3.5 Haiku and you need **API key** for its running. For cheaper processing, script turn multipage invoices in PDF to individual images and only use the first invoice page. According to our intense testing of many types of invoices we achieve accuracy of extraction 92-93%. If you would like to get better results with accuracy around 95-96% you would need to employ the more powerful model Claude Sonnet 4. To do so, you have to change one line of code with the end point of the Sonnet model.  
+Script extracting data from the Czech invoices in JSON and checking validity of VAT tax payer. Script uses Anthropic Claude 3.5 Haiku and you need **API key** for its running. For cheaper processing, script turns multipage invoices in PDF to individual images and only use the first invoice page. According to our intense testing of many types of invoices we achieve accuracy of extraction 92-93%. If you would like to get better results with accuracy around 95% you would need to employ the more powerful model Claude Sonnet 4. To do so, you have to change one line of code with the end point of the Sonnet model.  
 
 ## Installation Instructions
 
