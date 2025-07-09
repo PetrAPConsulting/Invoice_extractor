@@ -1,5 +1,5 @@
 # Invoice extractor
-Script extracting data from the Czech invoices in JSON and checking validity of VAT tax payer. Script uses Anthropic Claude 3.5 Haiku and you need **API key** for its running. For cheaper processing, script turns multipage invoices in PDF to individual images and only use the first invoice page. According to our intense testing of many types of invoices we achieve accuracy of extraction 92-93%. If you would like to get better results with accuracy around 95% you would need to employ the more powerful model Claude Sonnet 4. To do so, you have to change one line of code with the end point of the Sonnet model.  
+Scripts extracting data from the Czech invoices in JSON and checking validity of VAT tax payer. First script uses Anthropic Claude 3.5 Haiku and you need **API key** for its running. The second script uses Llama 4 Maverick provided by Groq. For cheaper processing, script turns multipage invoices in PDF to individual images and only use the first invoice page. According to our intense testing of many types of invoices we achieve accuracy of extraction 92-93% for Haiku 3.5 model. If you would like to get better results with accuracy around 95% you would need to employ the more powerful model Claude Sonnet 4. To do so, you have to change one line of code with the end point of the Sonnet model. Using Llama 4 Maverick is with similar accuracy level like Sonnet 4.  
 
 ## Installation Instructions
 
@@ -56,10 +56,32 @@ python invoice_extractor.py
 ## Package Descriptions
 
 - **anthropic**: Official Python client for the Anthropic API
+- **groq**: Official Python client for the Groq API 
 - **PyMuPDF**: Library for working with PDF files (also known as `fitz`)
 - **Pillow**: Python Imaging Library for handling various image formats
 
 ---
+
+## Llama 4 using Groq as inference provider
+
+### Create virtual environment for "my_project"
+```bash
+python3 -m venv my_project_venv
+```
+### Activate venv
+```bash
+source my_project_venv/bin/activate  # Linux/Mac
+# or
+my_project_venv\Scripts\activate     # Windows
+```
+### Install environment variables with Groq API Key 
+```bash
+echo "GROQ_API_KEY=your_groq_key_here" > .env
+```
+### Instal libraries and dependencies
+```bash
+pip install groq PyMuPDF Pillow requests
+```
 
 ## Troubleshooting
 
