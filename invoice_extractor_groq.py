@@ -9,7 +9,7 @@ import requests
 import xml.etree.ElementTree as ET
 from xml.dom import minidom
 
-# Load environment variables from .env file if it exists 
+# Load environment variables from .env file if it exists
 def load_env_file():
     env_file = Path('.env')
     if env_file.exists():
@@ -35,13 +35,13 @@ class InvoiceExtractor:
                 raise ValueError("GROQ_API_KEY environment variable not set")
         
         self.client = Groq(api_key=api_key)
-        self.model = "meta-llama/llama-4-maverick-17b-128e-instruct" # meta-llama/llama-4-scout-17b-16e-instruct
+        self.model = "meta-llama/llama-4-maverick-17b-128e-instruct"
         self.system_prompt = """You are an AI system designed to extract specific information from invoices and create a structured JSON output. Your task is to analyze the provided invoice and extract the following information:
 
 <invoice_fields>
 {{supplier_name}} description: Extract the legal name of the entity that issued the invoice. Follow this priority order: 1) Primary: Look for the company name that includes a legal entity designation (e.g., s.r.o., a.s., spol. s r.o., LLC, Inc., Corp., Ltd., GmbH, SA, etc.). This is typically the official legal name and should always be prioritized over brand names or trade names. 2) Secondary: If no legal entity designation is present, look for the name that appears in the official invoice header, sender address, or tax/registration number section. 3) Individual persons: If the invoice is issued by an individual (no legal entity designation present), extract the full personal name. Prioritize legal names over brand names, even if the brand name is more prominently displayed.
 
-{{vat_number}} description: VAT number is a string beginning with 2 letters, usually CZ, and 8 digits for a company and 10 digits for an individual person. This field is mandatory - every invoice must have a VAT number. Look carefully in the header, footer, or company details section if not immediately visible.
+{{vat_number}} description: VAT number is a string beginning with 2 letters, usually CZ, and 8 or 9 digits for a company and 10 digits for an individual person. This field is mandatory - every invoice must have a VAT number. Look carefully in the header, footer, or company details section if not immediately visible.
 
 {{invoice_number}} description: Invoice number is the unique identifier of this specific invoice document. Look for fields labeled "číslo faktury", "daňový doklad číslo", or "doklad číslo". AVOID extracting "číslo plátce" (payers number), "klientské číslo" (client number), "zákaznické číslo" (customer number), or "číslo objednávky" (order numbers). This field is mandatory - every invoice must have an invoice number. The invoice number is typically displayed prominently near the top of the invoice and is the number that identifies this particular billing document. If you cannot find a clearly labeled invoice number, use the "variabilní symbol" (variable symbol) value as it often serves as the invoice number. Extract only numeric characters from this field, removing any letters or special characters.
 
@@ -226,25 +226,50 @@ Provide only the JSON output without any additional description or explanation."
             status_elem = root.find('.//ns:status', namespaces)
             if status_elem is not None:
                 status_code = status_elem.get('statusCode', '')
+                
                 if status_code == '0':  # Success
-                    # Look for VAT payer records
-                    platce_elements = root.findall('.//ns:StatusNespolehlivyPlatce', namespaces)
+                    # Look for VAT payer records - correct element name
+                    platce_elements = root.findall('.//ns:statusPlatceDPH', namespaces)
                     
+                    # Check if we found any records at all
+                    if not platce_elements:
+                        print(f"VAT number {vat_number} not found in registry")
+                        return False  # VAT number doesn't exist = not reliable
+                    
+                    # Look for our specific VAT number
                     for platce in platce_elements:
-                        dic = platce.find('.//ns:dic', namespaces)
-                        if dic is not None and dic.text == vat_number:
-                            # Check reliability status
-                            nespolehlivy = platce.find('.//ns:nespolehlivy', namespaces)
-                            if nespolehlivy is not None:
-                                # If nespolehlivy is true, the payer is unreliable
-                                is_unreliable = nespolehlivy.text.lower() == 'true'
-                                return not is_unreliable  # Return True if reliable
+                        # DIC is an attribute, not a nested element
+                        dic_value = platce.get('dic', '')
+                        nespolehlivy_value = platce.get('nespolehlivyPlatce', '')
+                        
+                        if dic_value == vat_number:
+                            # Interpret the nespolehlivyPlatce value
+                            # Based on Czech VAT service documentation:
+                            # - "NENALEZEN" = Not found (invalid VAT number)
+                            # - "ANO" = Yes, unreliable
+                            # - "NE" = No, reliable (not unreliable)
+                            # - Empty or other = Usually means reliable
+                            
+                            if nespolehlivy_value == "NENALEZEN":
+                                print(f"VAT number {vat_number} not found in registry")
+                                return False
+                            elif nespolehlivy_value == "ANO":
+                                print(f"VAT payer {vat_number} is unreliable")
+                                return False
+                            elif nespolehlivy_value == "NE" or nespolehlivy_value == "":
+                                print(f"VAT payer {vat_number} is reliable")
+                                return True
+                            else:
+                                print(f"Unknown VAT status '{nespolehlivy_value}' for {vat_number}, assuming reliable")
+                                return True
                     
-                    # If no specific record found but status is OK, assume reliable
-                    return True
+                    # If records exist but our VAT number wasn't found
+                    print(f"VAT number {vat_number} not found in returned records")
+                    return False  # VAT number doesn't exist = not reliable
+                    
                 else:
-                    print(f"VAT service returned status code: {status_code}")
-                    return None
+                    print(f"VAT service returned error status code: {status_code}")
+                    return None  # Service error, can't determine
             else:
                 print("Could not find status in VAT service response")
                 return None
