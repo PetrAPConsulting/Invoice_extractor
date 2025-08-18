@@ -352,7 +352,7 @@ Provide only the JSON output without any additional description or explanation."
                         ]
                     }
                 ],
-                temperature=0.2,
+                temperature=0.0,
                 max_tokens=300,
                 top_p=0.95,
                 stream=False,
