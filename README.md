@@ -113,7 +113,8 @@ If using script is not convenient to you, I designed easy to use, very simple we
 4. Same optimized system prompt like in script with high correctness of data extraction 
 5. Validation screen for checking/correcting extracted data
 6. Download data in JSON scheme for further processing
-7. Minimalistic design
+7. Create your own VAT overview in VAT tracker using extracted data 
+8. Minimalistic, modern design
 
 ## How to use
 
@@ -129,5 +130,5 @@ If using script is not convenient to you, I designed easy to use, very simple we
 10. The decrypted key is stored only in sessionStorage (temporary memory)
 11. When you close the browser tab, the decrypted key is cleared
 12. Chose invoice/receipt you want to process and app will send data automatically to Groq API and display extracted data and original document
-13. After checking and correcting output you can download JSON file with same name as original document
+13. After checking and correcting output you can download JSON file with same name as original document or send data to VAT tracker for their visualisation
 14. In this set up doesn't work service of automatic checking of reliability of VAT payer (web service can't be called directly from browser)      
