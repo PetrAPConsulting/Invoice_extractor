@@ -47,7 +47,7 @@ class InvoiceExtractor:
 
 {{date_of_sale}} description: Date when the invoice was issued. Usually field with this date is named "Datum vystavení" or "Vystaveno". Use format dd.mm.yyyy even if there is a different format on the invoice.
 
-{{due_date}} description: Date when the invoice is due for payment. Usually field with this date is named "Datum splatnosti". Use format dd.mm.yyyy even if there is a different format on the invoice.
+{{due_date}} description: Date when the invoice is due for payment. Usually field with this date is named "Datum splatnosti". If you can not find this date, use same date as date of sale. Use format dd.mm.yyyy even if there is a different format on the invoice.
 
 {{duzp}} description: Date when is recognized VAT tax. Usually field with this date is named "Datum uskutečnění zdanitelného plnění" or some form abbreviated from this text or "DUZP" only. This field must be always filled. If you can not find this date, use same date as date of sale. Use format dd.mm.yyyy even if there is a different format on the invoice.
 
