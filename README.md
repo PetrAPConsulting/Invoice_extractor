@@ -117,7 +117,7 @@ If using script is not convenient to you, I designed easy to use, very simple we
 
 ## How to use
 
-1. Download HTML file (only what you need)
+1. Download HTML file and favicon.png (only what you need)
 2. Create account in Groq and generate API key
 3. Enter API key
 4. Check the "Enable password protection" checkbox
