@@ -100,3 +100,34 @@ python --version  # Should be 3.8 or higher
 # Check if packages are installed (after activation)
 python -c "import anthropic, fitz, PIL; print('All packages installed successfully!')"
 ```
+
+# Invoice extractor web app
+
+If using script is not convenient to you, I designed easy to use, very simple web app.
+
+## Key features
+
+1. API key encryption 
+2. Key is stored in local web browser storage (encrypted)
+3. Using super fast Groq inference for Llama 4 Maverick (you need Groq API key)
+4. Same optimized system prompt like in script with high correctness of data extraction 
+5. Validation screen for checking/correcting extracted data
+6. Download data in JSON scheme for further processing
+7. Minimalistic design
+
+## How to use
+
+1. Download HTML file (only what you need)
+2. Create account in Groq and generate API key
+3. Enter API key
+4. Check the "Enable password protection" checkbox
+5. Enter a password to encrypt your API key using **AES-256-GCM encryption**
+6. Click "Save API Key". API key is stored locally but encrypted.
+7. When you reopen the app, you'll see a lock icon 🔒
+8. An unlock dialog will appear
+9. Enter your password to decrypt the API key
+10. The decrypted key is stored only in sessionStorage (temporary memory)
+11. When you close the browser tab, the decrypted key is cleared
+12. Chose invoice/receipt you want to process and app will send data automatically to Groq API and display extracted data and original document
+13. After checking and correcting output you can download JSON file with same name as original document
+14. In this set up doesn't work service of automatic checking of reliability of VAT payer (web service can't be called directly from browser)      
