@@ -100,8 +100,9 @@ python --version  # Should be 3.8 or higher
 # Check if packages are installed (after activation)
 python -c "import anthropic, fitz, PIL; print('All packages installed successfully!')"
 ```
+---
 
-# Invoice extractor web app
+# 📊 Invoice extractor web app
 
 If using script is not convenient to you, I designed easy to use, very simple web app.
 
