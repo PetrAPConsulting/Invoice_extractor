@@ -102,7 +102,7 @@ python -c "import anthropic, fitz, PIL; print('All packages installed successful
 ```
 ---
 
-# 📊 Invoice extractor web app
+# 📊 Invoice processor web app
 
 If using script is not convenient to you, I designed easy to use, very simple web app.
 
