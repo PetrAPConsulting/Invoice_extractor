@@ -737,7 +737,7 @@
             
             <div style="display: flex; align-items: center; justify-content: space-between; margin-top: 10px;">
                 <small style="color: #718096;">
-                    Your API key is stored locally in your browser and never sent anywhere except to Groq API.
+                    Your API key is encrypted and stored locally in your browser and never sent anywhere except to Groq API.
                 </small>
                 <div id="apiKeyStatus" class="api-key-status missing">
                     <span id="statusIcon">⚠️</span>
@@ -970,6 +970,7 @@
         let currentFileName = '';
         let invoicesData = [];
         let currentQuarter = getCurrentQuarter();
+        let currentYear = getCurrentYear();
         let expenseChart = null;
 
         // Modern color palette for charts
@@ -1707,14 +1708,20 @@ Provide only the JSON output without any additional description or explanation.`
         }
 
         function updateStats() {
-            const totalInvoices = invoicesData.length;
-            const totalAmount = invoicesData.reduce((sum, invoice) => sum + parseFloat(invoice.total_amount_with_VAT || 0), 0);
+            // Filter invoices by selected quarter and year for "Total Invoices" and "Total Amount"
+            const selectedQuarterInvoices = invoicesData.filter(invoice => 
+                getQuarter(invoice.duzp) === currentQuarter && getYear(invoice.duzp) === currentYear
+            );
             
-            const currentYear = getCurrentYear();
+            const totalInvoices = selectedQuarterInvoices.length;
+            const totalAmount = selectedQuarterInvoices.reduce((sum, invoice) => sum + parseFloat(invoice.total_amount_with_VAT || 0), 0);
+            
+            // Current quarter VAT (unchanged)
             const currentQuarterVAT = invoicesData
                 .filter(invoice => getQuarter(invoice.duzp) === currentQuarter && getYear(invoice.duzp) === currentYear)
                 .reduce((sum, invoice) => sum + parseFloat(invoice.VAT_21 || 0) + parseFloat(invoice.VAT_12 || 0), 0);
             
+            // YTD VAT (unchanged)
             const ytdVAT = invoicesData
                 .filter(invoice => getYear(invoice.duzp) === currentYear)
                 .reduce((sum, invoice) => sum + parseFloat(invoice.VAT_21 || 0) + parseFloat(invoice.VAT_12 || 0), 0);
@@ -1727,7 +1734,6 @@ Provide only the JSON output without any additional description or explanation.`
 
         function updateQuarterTabs() {
             const tabsContainer = document.getElementById('quarterTabs');
-            const currentYear = getCurrentYear();
             
             const quarters = [...new Set(invoicesData
                 .filter(invoice => getYear(invoice.duzp) === currentYear)
@@ -1773,12 +1779,17 @@ Provide only the JSON output without any additional description or explanation.`
                 expenseChart = null;
             }
 
-            if (invoicesData.length === 0) {
+            // Filter invoices by selected quarter and year
+            const selectedQuarterInvoices = invoicesData.filter(invoice => 
+                getQuarter(invoice.duzp) === currentQuarter && getYear(invoice.duzp) === currentYear
+            );
+
+            if (selectedQuarterInvoices.length === 0) {
                 return;
             }
 
             const supplierData = {};
-            invoicesData.forEach((invoice, index) => {
+            selectedQuarterInvoices.forEach((invoice, index) => {
                 const supplier = invoice.supplier_name;
                 const amount = parseFloat(invoice.total_amount_with_VAT || 0);
                 const status = getSupplierStatus(invoice);
@@ -1872,13 +1883,18 @@ Provide only the JSON output without any additional description or explanation.`
                 return;
             }
             
-            if (invoicesData.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="6" class="no-data">No data available. Add invoices from the extractor or upload JSON files.</td></tr>';
+            // Filter invoices by selected quarter and year
+            const selectedQuarterInvoices = invoicesData.filter(invoice => 
+                getQuarter(invoice.duzp) === currentQuarter && getYear(invoice.duzp) === currentYear
+            );
+            
+            if (selectedQuarterInvoices.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="6" class="no-data">No data available for selected quarter. Add invoices from the extractor or upload JSON files.</td></tr>';
                 return;
             }
 
             const supplierData = {};
-            invoicesData.forEach((invoice, index) => {
+            selectedQuarterInvoices.forEach((invoice, index) => {
                 const vatNumber = invoice.vat_number || '';
                 const supplierKey = vatNumber ? `${invoice.supplier_name}_${vatNumber}` : invoice.supplier_name;
                 
@@ -1905,7 +1921,7 @@ Provide only the JSON output without any additional description or explanation.`
             const sortedSuppliers = Object.values(supplierData).sort((a, b) => b.totalAmount - a.totalAmount);
 
             if (sortedSuppliers.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="6" class="no-data">No supplier data found.</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="6" class="no-data">No supplier data found for selected quarter.</td></tr>';
                 return;
             }
 
@@ -1938,10 +1954,7 @@ Provide only the JSON output without any additional description or explanation.`
                 return;
             }
 
-            const currentYear = getCurrentYear();
-            const currentQ = getCurrentQuarter();
-            
-            const quarter = prompt(`Enter quarter to export (1-4):`, currentQ);
+            const quarter = prompt(`Enter quarter to export (1-4):`, currentQuarter);
             if (!quarter || quarter < 1 || quarter > 4) {
                 alert('Please enter a valid quarter (1-4).');
                 return;
