@@ -106,11 +106,11 @@ Provide only the JSON output without any additional description or explanation."
         
         # 1. Increase contrast
         contrast_enhancer = ImageEnhance.Contrast(img)
-        img = contrast_enhancer.enhance(1.5)  # Increase contrast by 50%
+        img = contrast_enhancer.enhance(1.3)  # Increase contrast by 30%
         
         # 2. Increase sharpness
         sharpness_enhancer = ImageEnhance.Sharpness(img)
-        img = sharpness_enhancer.enhance(1.3)  # Increase sharpness by 30%
+        img = sharpness_enhancer.enhance(1.2)  # Increase sharpness by 20%
         
         # 3. Slight brightness adjustment (optional)
         brightness_enhancer = ImageEnhance.Brightness(img)
